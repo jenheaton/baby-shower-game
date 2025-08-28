@@ -53,48 +53,57 @@ type RoomState = {
 
 /* ---------- Sample Items ---------- */
 const SAMPLE_ITEMS: Omit<Item, "id">[] = [
-   // Diapers & wipes
-  { name: "Pampers Swaddlers Diapers (Size 1, 84 ct)",  price: 24.99, imageUrl: "https://source.unsplash.com/0a1GDxcIg3o/800x600" },
-  { name: "Huggies Little Snugglers (Size 2, 80 ct)",   price: 27.99, imageUrl: "https://source.unsplash.com/YSVTUkJ2j_M/800x600" },
-  { name: "WaterWipes Baby Wipes (Original, 540 ct)",   price: 24.49, imageUrl: "https://source.unsplash.com/x4Ubx4BZUzQ/800x600" },
-
-  // Creams / care
-  { name: "Aquaphor Baby Healing Ointment (7 oz)",      price: 13.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20ointment" },
-  { name: "Boudreaux’s Butt Paste (4 oz)",              price: 8.99,  imageUrl: "https://source.unsplash.com/featured/800x600?diaper%20cream" },
-
-  // Feeding
-  { name: "Dr. Brown’s Options+ Bottles (3-pack, 8 oz)", price: 19.99, imageUrl: "https://source.unsplash.com/vaozLvtSHok/800x600" },
-  { name: "Philips Avent Soothie Pacifier (0–3m, 2-pack)", price: 6.99, imageUrl: "https://source.unsplash.com/YptLxc6Ng7E/800x600" },
-
-  // Bath / linens
-  { name: "Muslin Swaddle Blankets (3-pack)",           price: 24.99, imageUrl: "https://source.unsplash.com/featured/800x600?swaddle,baby" },
-  { name: "Hooded Baby Towels (2-pack)",                price: 17.99, imageUrl: "https://source.unsplash.com/featured/800x600?hooded%20baby%20towel" },
-
-  // Toys
-  { name: "Fisher-Price Rock-a-Stack",                  price: 8.99,  imageUrl: "https://source.unsplash.com/W-ueqLOw9RY/800x600" },
-  { name: "Manhattan Toy Winkel Rattle",                price: 9.99,  imageUrl: "https://source.unsplash.com/3u-UQBYMIu4/800x600" },
-  { name: "Lamaze Freddie the Firefly",                 price: 14.99, imageUrl: "https://source.unsplash.com/_4wlZQ9rTLM/800x600" },
-  { name: "Baby Einstein Take Along Tunes",             price: 9.99,  imageUrl: "https://source.unsplash.com/Wn5MFcEy9eA/800x600" },
-  { name: "Sophie la Girafe Teether",                   price: 24.99, imageUrl: "https://source.unsplash.com/EgMIFFKmPoE/800x600" },
-
-  // Gear
-  { name: "Lovevery Play Gym",                          price: 139.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20play%20gym" },
-  { name: "Skip Hop Activity Center",                   price: 129.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20activity%20center" },
-
-  // Books (board book classics)
-  { name: "Goodnight Moon (Board Book)",                price: 7.99,  imageUrl: "https://source.unsplash.com/O1TNdLNvJLM/800x600" },
-  { name: "The Very Hungry Caterpillar (Board Book)",   price: 8.99,  imageUrl: "https://source.unsplash.com/tV5f8EulJvc/800x600" },
-  { name: "Brown Bear, Brown Bear, What Do You See? (Board Book)", price: 8.99, imageUrl: "https://source.unsplash.com/u0MEyoLkrPM/800x600" },
-
-  // Health / nursery
-  { name: "FridaBaby NoseFrida Nasal Aspirator",        price: 16.99, imageUrl: "https://source.unsplash.com/featured/800x600?nasal%20aspirator%20baby" },
-  { name: "Hatch Rest Sound Machine/Night Light",       price: 69.99, imageUrl: "https://source.unsplash.com/featured/800x600?nursery%20night%20light" },
-  { name: "Ubbi Steel Diaper Pail",                     price: 79.99, imageUrl: "https://source.unsplash.com/featured/800x600?diaper%20pail" },
-
-  // “Weird / fancy” designer items (for fun!)
-  { name: "Gucci Monogram Stroller",                    price: 1290.00, imageUrl: "https://source.unsplash.com/hdMIR_EEn9A/800x600" },
-  { name: "Burberry Baby Onesie",                       price: 190.00,  imageUrl: "https://source.unsplash.com/tzX4q7oJlxc/800x600" },
-  { name: "Dior Baby Booties",                          price: 240.00,  imageUrl: "https://source.unsplash.com/featured/800x600?baby%20booties" },
+  {
+    name: "Evenflo Balance Wide-Neck Anti-Colic Baby Bottles - 9oz/2pk",
+    price: 9.99,
+    imageUrl:
+      "https://target.scene7.com/is/image/Target/GUEST_9e58c1dc-4129-4283-8212-27eacde304b3?wid=1200&hei=1200&qlt=80&fmt=webp",
+    note: "Baby Bottles!",
+  },
+  {
+    name: "Fisher-Price Glow and Grow Kick & Play Piano Gym Baby Playmat with Musical Learning Toy",
+    price: 59.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/7083250_Blue?wid=805&hei=805&op_sharpen=1",
+    note: "Play time!",
+  },
+  {
+    name: "Itzy Ritzy Friends Itzy Blocks",
+    price: 21.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/7053912?wid=805&hei=805&op_sharpen=1",
+    note: "Building blocks of the brain...",
+  },
+  {
+    name: "Cottage Door Press Grandma Wishes Book",
+    price: 9.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/2252749?wid=805&hei=805&op_sharpen=1",
+  },
+  {
+    name: "MAM Original Curved Matte Baby Pacifier 2 Pack",
+    price: 8.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/7083411_Pink?wid=805&hei=805&op_sharpen=1",
+  },
+  {
+    name: "Fisher-Price Rock-A-Stack Roly-Poly Sensory Stacking Toy",
+    price: 13.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/7158230?wid=805&hei=805&op_sharpen=1",
+  },
+  {
+    name: "Baby Trend Cover Me™ 4-in-1 Convertible Car Seat",
+    price: 179.99,
+    imageUrl:
+      "https://media.kohlsimg.com/is/image/kohls/6547103_Quartz_Pink?wid=805&hei=805&op_sharpen=1",
+  },
+  {
+    name: "Baby Gucci logo cotton gift set",
+    price: 330,
+    imageUrl:
+      "https://media.gucci.com/style/HEXFBFBFB_South_0_160_640x640/1523467807/516326_X9U05_9112_001_100_0000_Light.jpg",
+  },
 ];
 
 /* ---------- Utils ---------- */
@@ -320,7 +329,9 @@ function HostSetup({ room }: { room: RoomState }) {
         <div className="flex items-center justify-between">
           <div className="font-semibold mb-3">Items ({items.length})</div>
           <div className="flex gap-2">
-            <button className="px-3 py-2 rounded-xl bg-emerald-700 text-white" onClick={loadSamples} disabled={locked}>Load sample items (25)</button>
+            <button className="px-3 py-2 rounded-xl bg-emerald-700 text-white" onClick={loadSamples} disabled={locked}>
+              Load sample items ({SAMPLE_ITEMS.length})
+              </button>
             <button className="px-3 py-2 rounded-xl bg-slate-900 text-white" onClick={exportCsv}>Export CSV</button>
           </div>
         </div>
