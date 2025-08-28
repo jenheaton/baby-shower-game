@@ -53,31 +53,48 @@ type RoomState = {
 
 /* ---------- Sample Items ---------- */
 const SAMPLE_ITEMS: Omit<Item, "id">[] = [
-  { name: "Pampers Swaddlers Diapers (Size 1, 84 ct)", price: 28.99 },
-  { name: "Huggies Little Snugglers (Size 2, 80 ct)", price: 29.49 },
-  { name: "WaterWipes Baby Wipes (540 ct)", price: 22.99 },
-  { name: "Aquaphor Baby Healing Ointment (7 oz)", price: 13.49 },
-  { name: "Boudreaux's Butt Paste (4 oz)", price: 7.99 },
-  { name: "Dr. Brown's Options+ Bottle (3-pack)", price: 17.99 },
-  { name: "Philips Avent Soothie Pacifiers (2-pack)", price: 4.99 },
-  { name: "Muslin Swaddle Blankets (3-pack)", price: 19.99 },
-  { name: "Baby Monitor (Audio Only)", price: 24.99 },
-  { name: "Hooded Baby Towels (2-pack)", price: 18.99 },
-  { name: "Bibs (5-pack)", price: 12.99 },
-  { name: "Burp Cloths (5-pack)", price: 14.99 },
-  { name: "Onesies Short Sleeve (5-pack, 0-3m)", price: 16.99 },
-  { name: "Footed Sleepers (2-pack)", price: 18.49 },
-  { name: "Nursing Pillow", price: 29.99 },
-  { name: "Bottle Brush", price: 5.49 },
-  { name: "Infant Nail Clippers", price: 4.49 },
-  { name: "Digital Thermometer (Baby)", price: 8.99 },
-  { name: "Baby Shampoo & Wash (16 oz)", price: 7.49 },
-  { name: "Baby Lotion (16 oz)", price: 6.99 },
-  { name: "Teethers (2-pack)", price: 6.99 },
-  { name: "Silicone Bib (2-pack)", price: 10.99 },
-  { name: "Sippy Cups (2-pack)", price: 9.99 },
-  { name: "Diaper Pail Refill (3-pack)", price: 18.99 },
-  { name: "Changing Pad Liners (3-pack)", price: 12.49 },
+   // Diapers & wipes
+  { name: "Pampers Swaddlers Diapers (Size 1, 84 ct)",  price: 24.99, imageUrl: "https://source.unsplash.com/0a1GDxcIg3o/800x600" },
+  { name: "Huggies Little Snugglers (Size 2, 80 ct)",   price: 27.99, imageUrl: "https://source.unsplash.com/YSVTUkJ2j_M/800x600" },
+  { name: "WaterWipes Baby Wipes (Original, 540 ct)",   price: 24.49, imageUrl: "https://source.unsplash.com/x4Ubx4BZUzQ/800x600" },
+
+  // Creams / care
+  { name: "Aquaphor Baby Healing Ointment (7 oz)",      price: 13.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20ointment" },
+  { name: "Boudreaux’s Butt Paste (4 oz)",              price: 8.99,  imageUrl: "https://source.unsplash.com/featured/800x600?diaper%20cream" },
+
+  // Feeding
+  { name: "Dr. Brown’s Options+ Bottles (3-pack, 8 oz)", price: 19.99, imageUrl: "https://source.unsplash.com/vaozLvtSHok/800x600" },
+  { name: "Philips Avent Soothie Pacifier (0–3m, 2-pack)", price: 6.99, imageUrl: "https://source.unsplash.com/YptLxc6Ng7E/800x600" },
+
+  // Bath / linens
+  { name: "Muslin Swaddle Blankets (3-pack)",           price: 24.99, imageUrl: "https://source.unsplash.com/featured/800x600?swaddle,baby" },
+  { name: "Hooded Baby Towels (2-pack)",                price: 17.99, imageUrl: "https://source.unsplash.com/featured/800x600?hooded%20baby%20towel" },
+
+  // Toys
+  { name: "Fisher-Price Rock-a-Stack",                  price: 8.99,  imageUrl: "https://source.unsplash.com/W-ueqLOw9RY/800x600" },
+  { name: "Manhattan Toy Winkel Rattle",                price: 9.99,  imageUrl: "https://source.unsplash.com/3u-UQBYMIu4/800x600" },
+  { name: "Lamaze Freddie the Firefly",                 price: 14.99, imageUrl: "https://source.unsplash.com/_4wlZQ9rTLM/800x600" },
+  { name: "Baby Einstein Take Along Tunes",             price: 9.99,  imageUrl: "https://source.unsplash.com/Wn5MFcEy9eA/800x600" },
+  { name: "Sophie la Girafe Teether",                   price: 24.99, imageUrl: "https://source.unsplash.com/EgMIFFKmPoE/800x600" },
+
+  // Gear
+  { name: "Lovevery Play Gym",                          price: 139.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20play%20gym" },
+  { name: "Skip Hop Activity Center",                   price: 129.99, imageUrl: "https://source.unsplash.com/featured/800x600?baby%20activity%20center" },
+
+  // Books (board book classics)
+  { name: "Goodnight Moon (Board Book)",                price: 7.99,  imageUrl: "https://source.unsplash.com/O1TNdLNvJLM/800x600" },
+  { name: "The Very Hungry Caterpillar (Board Book)",   price: 8.99,  imageUrl: "https://source.unsplash.com/tV5f8EulJvc/800x600" },
+  { name: "Brown Bear, Brown Bear, What Do You See? (Board Book)", price: 8.99, imageUrl: "https://source.unsplash.com/u0MEyoLkrPM/800x600" },
+
+  // Health / nursery
+  { name: "FridaBaby NoseFrida Nasal Aspirator",        price: 16.99, imageUrl: "https://source.unsplash.com/featured/800x600?nasal%20aspirator%20baby" },
+  { name: "Hatch Rest Sound Machine/Night Light",       price: 69.99, imageUrl: "https://source.unsplash.com/featured/800x600?nursery%20night%20light" },
+  { name: "Ubbi Steel Diaper Pail",                     price: 79.99, imageUrl: "https://source.unsplash.com/featured/800x600?diaper%20pail" },
+
+  // “Weird / fancy” designer items (for fun!)
+  { name: "Gucci Monogram Stroller",                    price: 1290.00, imageUrl: "https://source.unsplash.com/hdMIR_EEn9A/800x600" },
+  { name: "Burberry Baby Onesie",                       price: 190.00,  imageUrl: "https://source.unsplash.com/tzX4q7oJlxc/800x600" },
+  { name: "Dior Baby Booties",                          price: 240.00,  imageUrl: "https://source.unsplash.com/featured/800x600?baby%20booties" },
 ];
 
 /* ---------- Utils ---------- */
