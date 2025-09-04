@@ -4,11 +4,13 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 
 /* =========================================================
- *  The Price Is Right — Baby Edition (Show-Style Build)
- *  - Guided host setup, practice round, invite flow
- *  - Player “Come on down!” join moment
- *  - Bids hidden until Reveal; tie rule honors same-amount wins
- *  - Marquee/price-tag theme; built-in sounds w/ mute toggle
+ *  The Price Is Right — Baby Edition (Winner Library + Finale)
+ *  - 40 winner messages (Toast + Host; Normal vs Overbid)
+ *  - Invite flow panel after Finish Setup
+ *  - Player image containment (no overflow)
+ *  - Practice round "would-have-won" display (no score)
+ *  - Big marquee "Show Results" + confetti finale
+ *  - Bids hidden until reveal; tie-rule supports same-amount winners
  * ========================================================= */
 
 const FIREBASE_CONFIG = {
@@ -40,23 +42,22 @@ type RoomState = {
   hostId: string;
   status: "setup" | "lobby" | "in_round" | "revealed" | "finished";
   rule: Rule;
-  roundIndex: number;                 // real rounds only
+  roundIndex: number;                  // real rounds only
   roundEndsAt?: number | null;
   roundDurationSec: number;
   isSetupDone?: boolean;
-  demoItem?: Item | null;             // practice item (removed from lineup)
+  demoItem?: Item | null;              // practice item (not in lineup)
   isDemoActive?: boolean;
   items: Item[];
   players: Record<string, Player>;
   guesses: Record<string, Record<string, Guess>>; // "demo" or roundIndex
   scores: Record<string, number>;
-  lastWinnerIds?: string[] | null;    // multiple winners if same amount
-  themeMuted?: boolean;               // mute sounds
+  lastWinnerIds?: string[] | null;     // multiple winners if same winning amount
+  themeMuted?: boolean;
 };
 
-/* ---------- Sample items (you can customize; load during Setup) ---------- */
+/* ---------- Sample items (edit freely) ---------- */
 const SAMPLE_ITEMS: Omit<Item, "id">[] = [
-  // Replace with your latest curated list whenever you want.
   { name: "Evenflo Balance Wide-Neck Anti-Colic Baby Bottles - 9oz/2pk", price: 9.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_9e58c1dc-4129-4283-8212-27eacde304b3?wid=1200&hei=1200&qlt=80&fmt=webp", note: "Baby Bottles!" },
   { name: "Fisher-Price Glow and Grow Kick & Play Piano Gym Baby Playmat with Musical Learning Toy", price: 59.99, imageUrl: "https://media.kohlsimg.com/is/image/kohls/7083250_Blue?wid=805&hei=805&op_sharpen=1", note: "Play time!" },
   { name: "Itzy Ritzy Friends Itzy Blocks", price: 21.99, imageUrl: "https://media.kohlsimg.com/is/image/kohls/7053912?wid=805&hei=805&op_sharpen=1", note: "Building blocks of the brain..." },
@@ -67,17 +68,81 @@ const SAMPLE_ITEMS: Omit<Item, "id">[] = [
   { name: "Baby Gucci logo cotton gift set", price: 330, imageUrl: "https://media.gucci.com/style/HEXFBFBFB_South_0_160_640x640/1523467807/516326_X9U05_9112_001_100_0000_Light.jpg" },
 ];
 
+/* ---------- Winner Messages Library (40) ---------- */
+// Toast (short) — Normal
+const TOAST_NORMAL = [
+  "Closest without going over: {name}! 🎯",
+  "{name} nailed it! 🎉",
+  "Winner: {name}! 🍼",
+  "+1 point to {name}! ⭐",
+  "{name} wins this round! 🎊",
+  "Baby bargain champ: {name}! 🏆",
+  "Sharp shopper: {name}! ✨",
+  "Point to {name}! Another step closer! 🏅",
+  "No diapers wasted—{name} scores! 👶",
+  "Closest call: {name}! 🎯",
+  "Boom! {name} takes the round! 🎆",
+  "{name} is on a roll! 🌀",
+  "Price wizard: {name}! 🪄",
+  "{name} snags the point! 🏁",
+];
+// Toast (short) — Overbid fallback
+const TOAST_OVERBID = [
+  "Overbid sweep! {name} wins anyway! 🙈",
+  "Fallback win: {name}! 🎯",
+  "Everyone went too high—{name} takes it! 🙌",
+  "ARP was lower! {name} wins anyway! 🍼",
+  "Closest on top: {name}! ⭐",
+  "{name} wins the overbid round! 🎉",
+];
+
+// Host (long) — Normal
+const HOST_NORMAL = [
+  "Come on down, {name}! Closest without going over and scoring +1 point!",
+  "Right on the money, {name}! That’s the winning bid this round!",
+  "{name} takes it! The smartest shopper in the nursery aisle!",
+  "And the winner is… {name}! Closest without going over, just like Bob taught us!",
+  "Closest to the ARP without going over… it’s {name}!",
+  "{name} knows their baby bargains! Winner, winner, diaper dinner!",
+  "A shopping pro emerges! {name} scores the round with style!",
+  "The nursery aisle never stood a chance—{name} wins it!",
+  "Another point for {name}! The crib is filling up with victories!",
+  "Look at that! {name} outbid the rest and takes home the win!",
+  "The stork delivers… a win for {name}! 🍼",
+  "Diapers, bottles, and now a point—{name} has it all!",
+  "The price was right for {name}! Closest bid takes the prize!",
+  "And just like that, {name} proves they know their baby gear best!",
+];
+// Host (long) — Overbid fallback
+const HOST_OVERBID = [
+  "You allllll overbid! Closest overall wins instead—{name} takes it!",
+  "Bob would be shaking his head… but {name} still wins for being the least over!",
+  "Over the price, every one of you! But {name} is the closest overall!",
+  "No winners by the rules—so we bend ’em! Closest overall goes to {name}!",
+  "Oops, everyone went too high! {name} saves the day with the least overbid!",
+  "Well, that’s a sweep of overbids—but {name} still grabs the point!",
+];
+
+// Finale lines (host-style)
+const FINALE_LINES = [
+  "Rattles down and smiles up—the grand champion is {name}!",
+  "From playpens to podiums… {name} takes the crown!",
+  "And the diaper-bag of victory belongs to… {name}!",
+  "The nursery tally is in—our baby shower champ is {name}!",
+  "Closest without going over, and champion of the shower: {name}!",
+];
+
 /* ---------- Utils ---------- */
 function parseMoney(s: string): number | null {
   const v = Number(String(s ?? "").replace(/[^0-9.\-]/g, ""));
   return Number.isFinite(v) ? v : null;
 }
 function clean<T extends Record<string, any>>(obj: T): T {
-  // Strip undefined for RTDB
-  return JSON.parse(JSON.stringify(obj));
+  return JSON.parse(JSON.stringify(obj)); // strips undefined for RTDB
 }
 function cls(...a: (string | false | null | undefined)[]) { return a.filter(Boolean).join(" "); }
 function toCurrency(n: number) { return `$${n.toFixed(2)}`; }
+const pick = <T,>(a: T[]) => a[Math.floor(Math.random()*a.length)];
 
 /* ---------- Built-in Sounds (no setup) ---------- */
 function playTone(freq=880, ms=150, type: OscillatorType="sine") {
@@ -111,6 +176,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(circle_at_20%_10%,#FFF2B3_0,#FAD6E7_35%,#E6D9FF_70%)] text-slate-900 p-4 md:p-8">
+      <ConfettiCSS />{/* inject keyframes once */}
       <div className="max-w-5xl mx-auto">
         <header className="mb-6">
           <MarqueeTitle />
@@ -141,7 +207,7 @@ function MarqueeTitle() {
           <div className="text-sm mt-1 text-[#2563EB]">Closest without going over wins!</div>
         </div>
       </div>
-      {/* Light bulbs */}
+      {/* bulbs (decor) */}
       <div className="absolute -inset-1 pointer-events-none grid grid-cols-8 gap-1 opacity-90">
         {[...Array(32)].map((_, i) => (
           <span key={i} className={cls("rounded-full h-1 w-1 bg-[#FFC700]", i%3===0 && "opacity-50")} />
@@ -150,9 +216,7 @@ function MarqueeTitle() {
     </div>
   );
 }
-
 function PriceTag({ children }: { children: React.ReactNode }) {
-  // chunky price-tag w/ "hole"
   return (
     <div className="relative inline-block bg-[#FFC700] text-slate-900 font-extrabold px-3 py-1 rounded-lg shadow">
       <span className="absolute -left-2 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-white border border-slate-300" />
@@ -160,7 +224,6 @@ function PriceTag({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
 function Badge({ children }: { children: React.ReactNode }) {
   return <span className="px-3 py-1 rounded-full bg-slate-900 text-white text-xs">{children}</span>;
 }
@@ -318,9 +381,8 @@ function HostSetup({ room, onFinished }: { room: RoomState; onFinished: ()=>void
     const items = room.items||[];
     const test = items.find(i=>i.id===id);
     if (!test) return;
-    // remove from lineup and set as demo
-    const rest = items.filter(i=>i.id!==id);
-    await up({ items: rest, demoItem: test });
+    const rest = items.filter(i=>i.id!==id);     // remove from lineup
+    await up({ items: rest, demoItem: test });   // set practice item
   };
 
   const setRule = (rule:Rule)=> up({ rule });
@@ -359,8 +421,7 @@ function HostSetup({ room, onFinished }: { room: RoomState; onFinished: ()=>void
   const finishSetup = async () => {
     if (!room.items?.length && !room.demoItem) return alert("Add at least 1 real item (test item doesn’t count).");
     await up({ isSetupDone: true, status: "lobby" });
-    alert("Setup finished. Invite players now! Items & rules are locked.");
-    onFinished(); // switch to Game tab
+    onFinished(); // take host straight to Game tab
   };
 
   const items = room.items||[];
@@ -510,7 +571,6 @@ function HostGame({ room }: { room: RoomState }) {
     const winners = computeWinners(gList, currentItem.price, room.rule);
     const scores = { ...(room.scores||{}) };
     if (!isDemo) {
-      // Award each winner (if same amount ties), else earliest only handled in computeWinners.
       for (const w of winners) { scores[w.playerId] = (scores[w.playerId]||0)+1; }
     }
     await up({ status:"revealed", scores, lastWinnerIds: winners.map(w=>w.playerId), roundEndsAt: null });
@@ -533,7 +593,6 @@ function HostGame({ room }: { room: RoomState }) {
   const notYet = playerIds.filter(id => !submittedIds.has(id));
   const submitted = playerIds.filter(id => submittedIds.has(id));
 
-  // Combined Players + Scores (sorted by score desc)
   const scoreboard = playerIds.map(pid => ({
     id: pid,
     name: players[pid].name,
@@ -541,33 +600,73 @@ function HostGame({ room }: { room: RoomState }) {
     hasBid: submittedIds.has(pid),
   })).sort((a,b)=> b.score - a.score || a.name.localeCompare(b.name));
 
-  // Count summary
   const submittedCount = submitted.length;
   const notYetCount = notYet.length;
 
   // Revealed items list (real rounds only)
   const revealedRounds = useMemo(()=>{
-    const rounds: { idx:number; item: Item; winners: Guess[] }[] = [];
+    const rounds: { idx:number; item: Item; winners: Guess[]; overbid:boolean }[] = [];
     if (!room.items?.length) return rounds;
     const maxShown = room.status==="finished" ? room.items.length-1 : (room.status==="revealed" ? room.roundIndex : room.roundIndex-1);
     for (let i = 0; i <= maxShown; i++) {
       const item = room.items[i]; if (!item) continue;
       const g = Object.values(room.guesses?.[String(i)] || {}).sort((a,b)=>a.ts-b.ts);
+      const overbid = room.rule==="closest_without_over" && !g.some(x=>x.value<=item.price);
       const winners = computeWinners(g, item.price, room.rule);
-      rounds.push({ idx:i, item, winners });
+      rounds.push({ idx:i, item, winners, overbid });
     }
     return rounds;
   }, [room.items, room.guesses, room.rule, room.roundIndex, room.status]);
 
+  // Invite link helper
   const invite = async () => {
     await navigator.clipboard.writeText(`${location.origin + location.pathname}?room=${room.code}&role=player`);
     alert("Player link copied to your clipboard!");
   };
 
+  const currentGuessesList = Object.values(roundGuesses).sort((a,b)=>a.ts-b.ts);
+  const overbidFallback = !!(room.rule==="closest_without_over" && currentItem && !currentGuessesList.some(x=>x.value<=currentItem.price));
+  const winnersNow = currentItem ? computeWinners(currentGuessesList, currentItem.price, room.rule) : [];
+  const winnerNames = formatNames(winnersNow.map(w=>w.playerName));
+  const hostWinLine = winnersNow.length
+    ? (overbidFallback ? pick(HOST_OVERBID) : pick(HOST_NORMAL)).replace("{name}", winnerNames)
+    : (room.status==="revealed" ? "No qualifying bids this round." : "");
+
+  const [showConfetti, setShowConfetti] = useState(false);
+  useEffect(()=>{
+    if (room.status==="finished") {
+      // respect reduced motion: handled in ConfettiOverlay
+      setShowConfetti(true);
+      const t = setTimeout(()=>setShowConfetti(false), 6000);
+      return ()=>clearTimeout(t);
+    }
+  }, [room.status]);
+
   return (
     <div className="mt-4 grid gap-4 md:grid-cols-3">
       {/* Left: Main Stage */}
-      <div className="bg-white rounded-3xl p-4 shadow md:col-span-2 border-4 border-[#FFF2B3]">
+      <div className="relative bg-white rounded-3xl p-4 shadow md:col-span-2 border-4 border-[#FFF2B3] overflow-hidden">
+        {showConfetti && <ConfettiOverlay />}
+        {/* Invite step (clear & obvious) */}
+        {room.status==="lobby" && (
+          <div className="mb-3 p-3 rounded-2xl bg-[#CFF3E6] border-2 border-emerald-300">
+            <div className="font-semibold mb-1">Invite Players</div>
+            <div className="text-sm">Share this link so players can join on their phones:</div>
+            <div className="mt-2 flex gap-2 items-center">
+              <code className="flex-1 px-2 py-1 rounded bg-white border text-xs overflow-x-auto">
+                {location.origin + location.pathname}?room={room.code}&role=player
+              </code>
+              <button className="px-3 py-2 rounded-xl bg-[#2563EB] text-white" onClick={invite}>Copy link</button>
+              {"share" in navigator && (navigator as any).share && (
+                <button className="px-3 py-2 rounded-xl bg-slate-900 text-white" onClick={()=> (navigator as any).share({ title:"Join the game", text:"Join the baby shower game:", url: `${location.origin + location.pathname}?room=${room.code}&role=player` })}>
+                  Share…
+                </button>
+              )}
+            </div>
+            <div className="text-xs mt-1 opacity-70">Tip: paste into Teams chat so everyone can tap it.</div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="text-sm opacity-60">{isDemo ? "Practice round (not scored)" : `Round ${room.roundIndex+1} / ${room.items.length}`}</div>
           <div className="flex items-center gap-2 text-xs">
@@ -598,7 +697,7 @@ function HostGame({ room }: { room: RoomState }) {
           <div className="mt-3 text-sm opacity-70">Waiting for host…</div>
         )}
 
-        {/* Bids list: hide amounts until reveal */}
+        {/* Contestants’ Row: hide bid amounts until reveal */}
         <div className="mt-4">
           <div className="font-semibold mb-2">Contestants’ Row</div>
           {room.status!=="revealed" ? (
@@ -614,7 +713,7 @@ function HostGame({ room }: { room: RoomState }) {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {Object.values(roundGuesses).sort((a,b)=>a.ts-b.ts).map(g=>(
+              {currentGuessesList.map(g=>(
                 <div key={g.playerId} className="px-3 py-2 rounded-xl text-sm border bg-white">
                   <div className="font-medium">{g.playerName}</div>
                   <div className="text-lg font-extrabold tracking-wider">{toCurrency(g.value)}</div>
@@ -624,6 +723,21 @@ function HostGame({ room }: { room: RoomState }) {
             </div>
           )}
         </div>
+
+        {/* Reveal message */}
+        {room.status==="revealed" && (
+          <div className="mt-3 p-3 rounded-xl bg-white border">
+            {isDemo ? (
+              <div className="text-sm">
+                <b>Practice “would-have-won”:</b>{" "}
+                {winnersNow.length ? hostWinLine : "No qualifying bids this practice round."}{" "}
+                <span className="opacity-70">Wipe the board and play for real!</span>
+              </div>
+            ) : (
+              <div className="text-sm">{winnersNow.length ? hostWinLine : "No qualifying bids this round."}</div>
+            )}
+          </div>
+        )}
 
         {/* Controls */}
         <div className="mt-4 flex gap-2">
@@ -639,8 +753,11 @@ function HostGame({ room }: { room: RoomState }) {
             </>
           )}
           {room.status==="revealed" && (
-            <button className="px-4 py-2 rounded-xl bg-[#2563EB] text-white" onClick={next}>
-              {isDemo ? "Start Round 1" : (room.roundIndex === (room.items.length-1) ? "Show results" : "Next item")}
+            <button className={cls("px-5 py-3 rounded-2xl text-white font-bold shadow relative overflow-hidden",
+                     "bg-[#FFC700] text-slate-900 border-4 border-yellow-300")}
+                    onClick={next}>
+              <span className="absolute inset-0 opacity-40 animate-pulse-marquee" />
+              {isDemo ? "Start Round 1" : (room.roundIndex === (room.items.length-1) ? "🎉 Show Results" : "Next item")}
             </button>
           )}
           {room.status==="finished" && <div className="px-3 py-2 rounded-xl bg-[#CDE7FF]">Game Over — see Results below</div>}
@@ -684,7 +801,7 @@ function HostGame({ room }: { room: RoomState }) {
                     <div className="text-xs opacity-70">Actual Retail Price: <b>{toCurrency(r.item.price)}</b></div>
                     <div className="text-xs mt-1">
                       {r.winners.length ? (
-                        <span>Winner{r.winners.length>1?"s":""}: {r.winners.map(w=>`${w.playerName} (${toCurrency(w.value)})`).join(", ")}</span>
+                        <span>Winner{r.winners.length>1?"s":""}: {r.winners.map(w=>`${w.playerName} (${toCurrency(w.value)})`).join(", ")} {r.overbid && <em className="opacity-60">• Overbid fallback</em>}</span>
                       ) : <span>No qualifying bids</span>}
                     </div>
                   </div>
@@ -698,7 +815,7 @@ function HostGame({ room }: { room: RoomState }) {
   );
 }
 
-/* ---------- Scoring helpers (handles “same amount → multiple winners”) ---------- */
+/* ---------- Scoring helpers (supports same-amount multi-winners) ---------- */
 function computeWinners(guesses: Guess[], price: number, rule: Rule): Guess[] {
   if (!guesses.length) return [];
 
@@ -708,7 +825,7 @@ function computeWinners(guesses: Guess[], price: number, rule: Rule): Guess[] {
     pool = notOver.length ? notOver : guesses;
   }
 
-  // Find best distance
+  // Best distance
   let best = Infinity;
   for (const g of pool) {
     const d = Math.abs(g.value - price);
@@ -725,6 +842,13 @@ function computeWinners(guesses: Guess[], price: number, rule: Rule): Guess[] {
   // Otherwise, earliest submission among best distance wins
   const earliest = bestCandidates.reduce((a,b)=> a.ts <= b.ts ? a : b);
   return [earliest];
+}
+
+function formatNames(names: string[]) {
+  if (!names.length) return "";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} & ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
 }
 
 /* ---------- Countdown ---------- */
@@ -813,15 +937,14 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
   const scoreEntries = Object.entries(room?.scores||{}).map(([pid,s])=>({ id:pid, name: room?.players?.[pid]?.name || "Player", score: s||0 }));
   const ranked = scoreEntries.sort((a,b)=> b.score-a.score || a.name.localeCompare(b.name)).map((r,i)=>({...r, rank:i+1}));
   const myScore = (room?.scores||{})[playerId] || 0;
-  const myRank = ranked.find(r=>r.id===playerId)?.rank || (ranked.length? ranked.length+1 : 1);
 
   // Top 5 visible only after first REAL round completed
-  const showTop5 = room && !isDemo && ((room.status==="revealed" && room.roundIndex>=0) || (room.status==="finished" && room.items.length>0));
+  const showTop5 = room && !isDemo && ((room.status==="revealed" && room.roundIndex>=0) || (room.status==="finished" && (room.items?.length||0)>0));
 
-  // Previous rounds table (hide until after first REAL round)
+  // Previous rounds (hide until after first REAL round)
   const historyRows = useMemo(()=>{
     if (!room) return [];
-    if (room.items.length===0) return [];
+    if ((room.items?.length||0)===0) return [];
     const show = !room.isDemoActive && (room.status==="revealed" || room.status==="finished") && room.roundIndex>=0;
     if (!show) return [];
     const rows: {name:string; price:number; my?:number}[] = [];
@@ -835,14 +958,20 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
     return rows;
   }, [room?.items, room?.guesses, room?.roundIndex, room?.status]);
 
-  // Sounds on reveal/win (only after user interaction join)
+  // Reveal sounds + toast
+  const guessesList = Object.values(roundGuesses||{}).sort((a,b)=>a.ts-b.ts);
+  const overbidFallback = !!(room?.rule==="closest_without_over" && currentItem && !guessesList.some(x=>x.value<=currentItem.price));
+  const winners = currentItem ? computeWinners(guessesList, currentItem.price, room!.rule) : [];
+  const iWon = Boolean(!isDemo && winners.some(w=>w.playerId===playerId));
+  const toastLineTemplate = overbidFallback ? pick(TOAST_OVERBID) : pick(TOAST_NORMAL);
+  const toastLine = winners.length ? toastLineTemplate.replace("{name}", formatNames(winners.map(w=>w.playerName))) : "";
+
   useEffect(()=>{
     if (!room || room.themeMuted) return;
     if (room.status==="revealed") {
-      const iWon = room.lastWinnerIds?.includes(playerId) && !room.isDemoActive;
       if (iWon) SFX.win(); else SFX.reveal();
     }
-  }, [room?.status, room?.lastWinnerIds, room?.themeMuted]);
+  }, [room?.status, iWon, room?.themeMuted]);
 
   return (
     <div className="mt-6 max-w-xl mx-auto bg-white rounded-3xl p-5 shadow border-4 border-[#CFF3E6]">
@@ -865,6 +994,13 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
             </div>
           )}
 
+          {/* toast winner line for everyone to see on reveal */}
+          {room.status==="revealed" && winners.length>0 && (
+            <div className="mb-3 p-2 rounded-xl bg-white border text-center text-sm">
+              {toastLine}
+            </div>
+          )}
+
           <div className="text-sm opacity-70">Room <PriceTag>{room.code}</PriceTag></div>
 
           {room.isDemoActive && <div className="mt-2 text-xs px-3 py-2 rounded-xl bg-[#FFF2B3] border">Practice round — not scored.</div>}
@@ -872,11 +1008,17 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
           {/* Lobby wait */}
           {room.status==="lobby" && <div className="mt-3 p-3 rounded-xl bg-white border text-sm">Waiting for host and players… Your score: <b>{myScore}</b></div>}
 
-          {/* In round: show image and bid panel */}
+          {/* In round: show image and bid panel (image contained within border) */}
           {room.status==="in_round" && (
             <div className="mt-3 p-3 rounded-2xl border bg-white">
               <div className="text-sm opacity-60">{room.isDemoActive ? "Practice round" : `Round ${room.roundIndex+1} / ${room.items.length}`}</div>
-              {currentItem?.imageUrl && <img src={currentItem.imageUrl} className="w-full h-48 object-cover rounded-xl border-4 border-[#FFC700] mt-2" alt=""/>}
+
+              {currentItem?.imageUrl && (
+                <div className="mt-2 w-full h-48 md:h-64 border-4 border-[#FFC700] rounded-xl bg-white flex items-center justify-center overflow-hidden">
+                  <img src={currentItem.imageUrl} className="max-h-full max-w-full object-contain" alt=""/>
+                </div>
+              )}
+
               <div className="text-lg font-semibold mt-2">{currentItem?.name || ""}</div>
               <div className="mt-1 text-sm">Ends in <Countdown targetMs={room.roundEndsAt||0} muted={!!room.themeMuted}/></div>
 
@@ -900,7 +1042,7 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
                 <>
                   <div className="text-sm">Your bid: {toCurrency(myBid)}</div>
                   <div className="text-sm">Off by: {Math.abs(myBid-currentItem.price).toFixed(2)}</div>
-                  {!room.isDemoActive && (room.lastWinnerIds?.includes(playerId)
+                  {!room.isDemoActive && (iWon
                     ? <div className="text-sm text-[#17A34A] font-semibold">Ohhh yea! <b>{room.players?.[playerId]?.name || "You"}</b> bid the closest! +1 point! 🎉</div>
                     : <div className="text-sm opacity-80">{(room.rule==="closest_without_over" && myBid>currentItem.price) ? <span className="text-[#E63946]">Over the price!</span> : "Better luck next time!"}</div>
                   )}
@@ -942,10 +1084,7 @@ function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string; setRo
           )}
 
           {room.status==="finished" && (
-            <div className="mt-4 p-3 rounded-xl bg-white border">
-              <div className="font-semibold mb-2">Final Results</div>
-              <PlayerResults ranked={ranked}/>
-            </div>
+            <Finale ranked={ranked} />
           )}
         </div>
       )}
@@ -960,27 +1099,70 @@ function HowTo() {
       <ul className="list-disc pl-4 space-y-1">
         <li>Enter your name and the room code, then tap <b>Join</b>.</li>
         <li>When an item appears, type your <b>bid</b> (e.g., <code>24.99</code>) and submit.</li>
-        <li>The <b>closest without going over</b> wins the point.</li>
+        <li>The <b>closest without going over</b> wins the point (ties share points if same bid).</li>
       </ul>
     </div>
   );
 }
 
-function PlayerResults({ ranked }: { ranked:{id:string;name:string;score:number;rank:number}[] }) {
-  const top3 = ranked.slice(0,3);
+function Finale({ ranked }: { ranked:{id:string;name:string;score:number;rank:number}[] }) {
+  const champion = ranked[0];
+  const line = champion ? pick(FINALE_LINES).replace("{name}", champion.name) : "Thanks for playing!";
   return (
-    <div>
+    <div className="relative mt-4 p-4 bg-white rounded-3xl border-4 border-[#FFC700]">
+      <ConfettiOverlay />
+      <div className="text-center font-semibold mb-2">Final Results</div>
       <div className="flex items-end gap-3">
-        {top3[1] && <div className="flex-1 text-center"><div className="text-lg">🥈 {top3[1].name}</div><div className="bg-slate-300 h-10 rounded-t-xl mt-1"/></div>}
-        {top3[0] && <div className="flex-1 text-center"><div className="text-xl font-bold">🥇 {top3[0].name}</div><div className="bg-slate-400 h-16 rounded-t-xl mt-1"/></div>}
-        {top3[2] && <div className="flex-1 text-center"><div className="text-lg">🥉 {top3[2].name}</div><div className="bg-slate-200 h-6 rounded-t-xl mt-1"/></div>}
+        {ranked[1] && <div className="flex-1 text-center"><div className="text-lg">🥈 {ranked[1].name}</div><div className="bg-slate-300 h-10 rounded-t-xl mt-1"/></div>}
+        {ranked[0] && <div className="flex-1 text-center"><div className="text-xl font-bold">🥇 {ranked[0].name}</div><div className="bg-slate-400 h-16 rounded-t-xl mt-1"/></div>}
+        {ranked[2] && <div className="flex-1 text-center"><div className="text-lg">🥉 {ranked[2].name}</div><div className="bg-slate-200 h-6 rounded-t-xl mt-1"/></div>}
       </div>
+      <div className="mt-3 text-center text-sm">{line}</div>
       <table className="w-full text-left text-sm mt-3">
         <thead><tr className="opacity-60"><th className="py-1">#</th><th>Player</th><th>Score</th></tr></thead>
         <tbody>{ranked.map(r=>(
           <tr key={r.id} className="border-t"><td className="py-1">{r.rank}</td><td>{r.name}</td><td>{r.score}</td></tr>
         ))}</tbody>
       </table>
+    </div>
+  );
+}
+
+/* ---------- Confetti (no deps, honors reduced motion) ---------- */
+function ConfettiCSS() {
+  return (
+    <style>{`
+      @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; } }
+      @keyframes marqueePulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
+      .animate-pulse-marquee { animation: marqueePulse 1.4s linear infinite; background: repeating-linear-gradient(90deg,#fff3, #fff3 8px, #fff0 8px, #fff0 16px); }
+      @media (prefers-reduced-motion: reduce) { .confetti-piece { animation: none !important; } }
+    `}</style>
+  );
+}
+function ConfettiOverlay() {
+  const pieces = 120;
+  const colors = ["#FFC700","#E63946","#17A34A","#14B8A6","#2563EB","#FAD6E7","#CDE7FF","#CFF3E6"];
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {Array.from({length: pieces}).map((_, i)=> {
+        const left = Math.random()*100;
+        const delay = Math.random()*0.6;
+        const duration = 2 + Math.random()*2.5;
+        const size = 6 + Math.random()*8;
+        const color = colors[i % colors.length];
+        const style: React.CSSProperties = {
+          position: "absolute",
+          top: "-10vh",
+          left: `${left}%`,
+          width: size, height: size*0.6,
+          background: color,
+          opacity: 0.85,
+          transform: `translateY(-10vh) rotate(${Math.random()*360}deg)`,
+          animation: `fall ${duration}s ${delay}s linear infinite`,
+          borderRadius: 2,
+        };
+        return <span key={i} className="confetti-piece" style={style} />;
+      })}
     </div>
   );
 }
