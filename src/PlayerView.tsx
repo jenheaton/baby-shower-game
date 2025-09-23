@@ -5,7 +5,7 @@ import { ensureFirebase } from "./firebase";
 import { PriceTag, Countdown, ConfettiOverlay } from "./SharedComponents";
 import {
   type RoomState, type Guess, type Item,
-  parseMoney, clean, toCurrency, computeWinners, formatNames, pick, SFX
+  parseMoney, clean, toCurrency, computeWinners, formatNames, pick, SFX, getPrizeDescription
 } from "./gameUtils";
 import { TOAST_NORMAL, TOAST_OVERBID, FINALE_LINES } from "./gameData";
 
