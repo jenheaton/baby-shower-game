@@ -179,7 +179,7 @@ export function HostGame({ room }: { room: RoomState }) {
     if (room.status === "lobby") {
       return pick(HOST_SCRIPTS.WELCOME);
     } else if (room.status === "showing_prize") {
-      return `And now, here's what you're playing for! ${room.currentPrize} ${getPrizeDescription(room.currentPrize || "")}! When you're ready, show the item to bid on.`;
+      return `And now, here's what you're playing for! ${room.currentPrize} ${getPrizeDescription(room.currentPrize || "")}!`;
     } else if (room.status === "in_round") {
       if (submittedCount === 0) {
         return pick(HOST_SCRIPTS.ROUND_START);

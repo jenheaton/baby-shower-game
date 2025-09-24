@@ -203,9 +203,10 @@ export function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string
   // Auto-rejoin logic for returning players
   useEffect(() => {
     if (room && code && playerId && !hasJoined) {
-      // Check if our playerId already exists in the room's players
-      if (room.players && room.players[playerId]) {
-        // We're already in the room, auto-rejoin
+      // Check if our playerId already exists in the room's players AND we have a stored name
+      const storedName = localStorage.getItem(`playerName_${code}`);
+      if (room.players && room.players[playerId] && storedName) {
+        // We're already in the room with a previous name, auto-rejoin
         setHasJoined(true);
         setAutoRejoined(true);
         // Update our local name to match what's in Firebase
@@ -356,12 +357,6 @@ export function PlayerView({ roomCode: initial, setRoomCode }: { roomCode:string
           {room.status==="in_round" && (
             <div className="mt-3 p-3 rounded-lg border border-gray-200 bg-white">
               <div className="text-sm opacity-60">Round {room.roundIndex+1} / {room.items.length}</div>
-
-              {currentItem?.imageUrl && (
-                <div className="mt-2 w-full h-40 border-2 border-yellow-400 rounded-lg bg-white flex items-center justify-center overflow-hidden">
-                  <img src={currentItem.imageUrl} className="max-h-full max-w-full object-contain" alt=""/>
-                </div>
-              )}
 
               <div className="text-lg font-semibold mt-2">{currentItem?.name || ""}</div>
               <div className="mt-1 text-sm">Ends in <Countdown targetMs={room.roundEndsAt||0} muted={!!room.themeMuted}/></div>

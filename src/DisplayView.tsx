@@ -25,6 +25,13 @@ export function DisplayView({ roomCode }: { roomCode: string }) {
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 3000);
       return () => clearTimeout(timer);
+    } else if (room?.status === "finished") {
+      // Longer confetti for finale
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 8000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowConfetti(false);
     }
   }, [room?.status]);
 
@@ -264,7 +271,7 @@ export function DisplayView({ roomCode }: { roomCode: string }) {
               </div>
 
               {/* Prize Winners Display */}
-              <div className="flex-1 bg-gradient-to-br from-yellow-50 to-pink-50 rounded-3xl p-8 border-4 border-yellow-400 shadow-2xl overflow-hidden">
+              <div className="flex-1 bg-gradient-to-br from-yellow-50 to-pink-50 rounded-3xl p-8 border-4 border-yellow-400 shadow-2xl overflow-y-auto">
                 <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Prize Winners</h2>
                 {(() => {
                   const winnersWithPrizes = finalScores.filter(player => player.prizes.length > 0);
@@ -308,12 +315,18 @@ export function DisplayView({ roomCode }: { roomCode: string }) {
                   return (
                     <div className={containerClass}>
                       {winnersWithPrizes.map((player, index) => (
-                        <div key={player.name} className={cardClass}>
+                        <div
+                          key={player.name}
+                          className={`${cardClass} animate-pulse hover:animate-bounce transition-all duration-500`}
+                          style={{ animationDelay: `${index * 0.2}s` }}
+                        >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={nameClass}>{player.name}</div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className={prizeClass}>{player.prizes.join(" ") || "—"}</div>
+                            <div className={`${prizeClass} animate-bounce`} style={{ animationDelay: `${index * 0.3}s` }}>
+                              {player.prizes.join(" ") || "—"}
+                            </div>
                             <div className="text-sm text-gray-600">{player.prizes.length} prize{player.prizes.length !== 1 ? 's' : ''}</div>
                           </div>
                         </div>

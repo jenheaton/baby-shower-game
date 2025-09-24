@@ -10,6 +10,16 @@ export const SAMPLE_ITEMS: Omit<Item, "id">[] = [
   { name: "Fisher-Price Rock-A-Stack Roly-Poly Sensory Stacking Toy", price: 13.99, imageUrl: "https://media.kohlsimg.com/is/image/kohls/7158230?wid=805&hei=805&op_sharpen=1" },
   { name: "Baby Trend Cover Me™ 4-in-1 Convertible Car Seat", price: 179.99, imageUrl: "https://media.kohlsimg.com/is/image/kohls/6547103_Quartz_Pink?wid=805&hei=805&op_sharpen=1" },
   { name: "Baby Gucci logo cotton gift set", price: 330, imageUrl: "https://media.gucci.com/style/HEXFBFBFB_South_0_160_640x640/1523467807/516326_X9U05_9112_001_100_0000_Light.jpg" },
+  { name: "Huggies Evening Carry All Tote Diaper Bag", price: 69.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_8d082948-6b16-4af3-b455-2a31966ca4d3?wid=600&hei=600&qlt=80&fmt=webp" },
+  { name: "Gerber Baby Food Stage 1 Banana Puree Jar - 4oz", price: 1.43, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_ba741b3c-accc-4e79-85fc-06c4e5b75cf0?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Carter's Just One You® Baby Girls' Knitted Slippers - Pink Newborn: Unicorn Pattern, Pull-On Bootie, Cotton Lining", price: 9.00, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_b6874fe1-ef91-4888-baec-b70378daaf7c?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "NUK Perfect Match Baby Bottle - Medium Flow - 8oz", price: 7.69, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_326fa8fe-da57-460a-a6a5-9c1228a5ce1f?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Huggies Little Snugglers Disposable Diapers - Pack of 144", price: 44.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_f1fa8176-a1e3-423f-96db-1bb5477ba71d?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Disney Baby Finding Nemo Sea of Activities Jumper", price: 139.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_95aba5ea-99aa-44b7-8c68-b8ecd7d0792b?wid=600&hei=600&qlt=80&fmt=webp" },
+  { name: "Sassy Stacks of Circles Ring Stacker", price: 10.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_b2080bab-4dd1-47eb-b8ea-f1deb4d6d268?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Fisher-Price Calming Vibes Hedgehog Soother", price: 18.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_9c02022d-8a92-411f-bcf1-ace0e762fb75?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Crayola Kids' Pink Crayon Halloween Costume Jumpsuit", price: 32.99, imageUrl: "https://target.scene7.com/is/image/Target/GUEST_58b6a2a4-92ab-4916-a344-0b92a0ac77c3?wid=1200&hei=1200&qlt=80&fmt=webp" },
+  { name: "Gucci Stroller - Gucci expands its children's collection with its first stroller - Accessories included: cup holder, storage basket", price: 4900.00, imageUrl: "https://media.gucci.com/style/HEXFBFBFB_South_0_160_640x640/1702629909/770109_FACO7_9758_001_100_0000_Light.jpg" },
 ];
 
 /* ---------- Winner Messages Library (40) ---------- */
